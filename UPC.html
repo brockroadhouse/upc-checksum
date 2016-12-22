@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js">
+	</script>
+	<title>UPC Checksum</title>
+</head>
+<body>
+	<form>
+	<label>UPC (numbers only):</label><br />
+	<input id="upc" /><br />
+	<button type="submit">Submit</button>
+	</form><br />
+
+	<b><span id="result"></span></b>
+
+    <script>
+        // UPC Checksum function
+        $('form').on('submit', function() {
+            var upc = $("#upc").val();
+            var result = "Invalid UPC"; // default
+
+            if (!isNaN(upc)) {
+                result = upc;
+                var last = 0;
+                for (var i = 0; i < upc.length; i++) {
+                    if (i % 2 == 0) {
+                        last += parseInt(upc[i]*3);
+                    } else {
+                        last += parseInt(upc[i]);
+                    }
+                }
+                var top = Math.ceil(last/10)*10;
+                result += (top-last);
+            }
+
+            $('#result').html(result);
+            return false;
+        });
+    </script>
+</body>
+</html>
