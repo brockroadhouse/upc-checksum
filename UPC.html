@@ -26,12 +26,13 @@
 </head>
 <body>
 	<form>
-	<label>UPC (numbers only):</label><br />
+	<label for="upc">UPC (numbers only):</label><br />
 	<input id="upc" /><br />
 	<button type="submit">Submit</button>
 	</form>
 
-    <div id="barcode"></div>
+    <canvas id="canvas" height="100" width="230" style="display: none;"></canvas>
+    <img id="barcode" src="">
     <div id="result"></div>
 
     <script>
@@ -52,56 +53,77 @@
                 result += (top-check);
             }
 
-            $('#result').html(result);
-            $('#barcode').html(barcode(result));
-
+            $('#result').html(getHri(result));
+            drawBarcode(result);
             return false;
         });
 
-        // UPC Barcode Generator
-        function barcode(upc, target) {
-            if (upc.length != 12) {
-                return '';
+        function getHri(upc) {
+            var hri ='';
+            for (var i=0; i<upc.length; i++) {
+                if (i == 5) {
+                    hri += '<span style="letter-spacing: 5px;">' + upc.charAt(i) + '</span>';
+                } else {
+                    hri += upc.charAt(i);
+                }
             }
+            return hri;
+        }
 
+        function getBarcodeData(upc) {
             // UPC encoding: [left, right]
             var encoding = [
-                    ['0001101', '1110010'],
-                    ['0011001', '1100110'],
-                    ['0010011', '1101100'],
-                    ['0111101', '1000010'],
-                    ['0100011', '1011100'],
-                    ['0110001', '1001110'],
-                    ['0101111', '1010000'],
-                    ['0111011', '1000100'],
-                    ['0110111', '1001000'],
-                    ['0001011', '1110100']
-                ];
-            var width = 2;
-            var height = 100;
-            var code = '';
-            var result = '';
+                ['0001101', '1110010'],
+                ['0011001', '1100110'],
+                ['0010011', '1101100'],
+                ['0111101', '1000010'],
+                ['0100011', '1011100'],
+                ['0110001', '1001110'],
+                ['0101111', '1010000'],
+                ['0111011', '1000100'],
+                ['0110111', '1001000'],
+                ['0001011', '1110100']
+            ];
 
-            for (var i=0; i<6; i++) {
+            var code = '';
+            var i;
+            for (i=0; i<6; i++) {
                 code += encoding[upc.charAt(i)][0];
             }
             code += '02020';
-            for (var i=6; i<12; i++) {
+            for (i=6; i<12; i++) {
                 code += encoding[upc.charAt(i)][1];
             }
 
-            code = '0000000000' + '202' + code + '202' + '0000000000';
+            return '0000000000' + '202' + code + '202' + '0000000000';
+        }
 
-            for (var i=0; i<code.length; i++) {
-                var char = code.charAt(i);
-                if (char == 0) {
-                    result += '<div style="float: left; width: ' + width + 'px; height: ' + height + 'px;"></div>';
-                } else {
-                    var barHeight = char == 2 ? height+10 : height;
-                    result += '<div style="float: left; background-color: #000000; width: ' + width + 'px; height: ' + barHeight + 'px;"></div>';
-                }
+        function drawBarcode(upc) {
+            if (upc.length != 12) {
+                $('#barcode').attr('src', '');
+                return '';
             }
-            return result;
+
+            var code = getBarcodeData(upc);
+
+            var canvas = $('#canvas')[0];
+            if (canvas.getContext) {
+                var ctx = canvas.getContext('2d');
+                var height = 100;
+                var x = 0;
+
+                for (var i=0; i<code.length; i++) {
+                    var char = code.charAt(i);
+                    if (char == 0) {
+                        ctx.fillStyle = "rgb(255,255,255)";
+                    } else {
+                        ctx.fillStyle = "rgb(0,0,0)";
+                    }
+                    ctx.fillRect(x,0,2,height);
+                    x = x+2;
+                }
+                $('#barcode').attr('src', canvas.toDataURL());
+            }
         }
 
     </script>
